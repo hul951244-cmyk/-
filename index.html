@@ -2,33 +2,33 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
-<title>预实验 - AI语音自然度与停顿词察觉</title>
+<title>AI语音自然度与停顿词察觉 - 预实验</title>
 <style>
     body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
     h2 { margin-top: 30px; }
     label { display: block; margin: 8px 0 4px; }
     input[type=number], select, textarea { width: 300px; padding: 6px; }
-    .scale label { display: inline-block; margin-right: 10px; }
+    .scale label { display: block; margin-bottom: 6px; }
     .audio-block { margin: 20px 0; }
     button { padding: 10px 20px; margin-top: 20px; cursor: pointer; }
-    .text-box { background: #f9f9f9; padding: 10px; border-radius: 6px; margin-top: 10px; }
+    .text-box { background: #f9f9f9; padding: 10px; border-radius: 6px; margin-top: 10px; white-space: pre-wrap; }
 </style>
 </head>
 <body>
 
-<h1>预实验：AI语音自然度与停顿词察觉</h1>
-<p>说明：本实验旨在研究 AI 语音的自然度与停顿词感知。您将听两段不同版本的 AI 对话，请佩戴耳机并在安静环境下完成。听完每段音频后，请填写相应问卷。</p>
-
+<h1>AI语音自然度与停顿词察觉 - 预实验</h1>
+<p>请您佩戴耳机，在安静环境下完成本实验。您将听两段不同版本的 AI 订餐对话，请按顺序听并完成每段后的问卷。</p>
 <hr>
 
+<form id="surveyForm">
 <div id="experiment"></div>
 
 <h2>基本信息</h2>
 <label>年龄：
-    <input type="number" id="age">
+    <input type="number" name="age" required>
 </label>
 <label>性别：
-    <select id="gender">
+    <select name="gender" required>
         <option value="">请选择</option>
         <option value="男">男</option>
         <option value="女">女</option>
@@ -36,13 +36,17 @@
     </select>
 </label>
 <label>AI 使用经验（1=从未使用，5=非常熟练）：
-    <input type="number" min="1" max="5" id="ai_exp">
+    <input type="number" name="ai_experience" min="1" max="5" required>
 </label>
 
-<button onclick="saveData()">保存结果</button>
+<button type="submit">提交</button>
+</form>
 
 <script>
-// 对话文本（已去掉“您好”）
+// Google Apps Script URL
+const scriptURL = "https://script.google.com/macros/s/AKfycbwVQGj5YbDOPT5z7id0XNtoMDsiF8_EC2gIXrPvf-dOGyqHyedaqMMbBYcU7fEknyRUGA/exec";
+
+// 对话文本
 const dialogues = {
     no_pause: `顾客：你好，请问可以帮我订餐吗？
 AI：当然可以，请问您打算什么时候来？
@@ -51,7 +55,7 @@ AI：好的，您一共几位呢？
 顾客：四位。
 AI：好的，那您希望几点钟到？
 顾客：六点钟。
-AI：好的，请稍等，我帮您查一下…有位置的。那我帮您预订好啦。
+AI：好的，请稍等，我帮您查一下。有位置的。那我帮您预订好啦。
 顾客：好的，谢谢。
 AI：不客气，我们下周三见。`,
 
@@ -70,82 +74,84 @@ AI：不客气，我们下周三见。`
 // 随机化顺序
 let versions = ["no_pause", "pause"];
 versions = versions.sort(() => Math.random() - 0.5);
-const orderLabel = versions[0] === "no_pause" ? "NoPause-First" : "Pause-First";
+const orderLabel = versions[0] === "pause" ? "pause-first" : "no-pause-first";
 
-// 动态生成实验内容
+// 动态生成问卷
 const container = document.getElementById("experiment");
 versions.forEach((version, idx) => {
     container.innerHTML += `
         <h2>音频 ${idx + 1}</h2>
         <div class="audio-block">
-            <audio controls>
-                <source src="${version === 'no_pause' ? 'no_pause.mp3' : 'pause.mp3'}" type="audio/mpeg">
+            <audio controls required>
+                <source src="${version}.mp3" type="audio/mpeg">
                 您的浏览器不支持音频播放。
             </audio>
         </div>
-        <div class="text-box"><pre>${dialogues[version]}</pre></div>
+        <div class="text-box">${dialogues[version]}</div>
 
         <h3>自然度感知量表（1=非常不同意，7=非常同意）</h3>
         <div class="scale">
             <label>这个语音听起来很自然：
-                <input type="number" min="1" max="7" id="natural_${version}">
+                <input type="number" name="audio${idx+1}_score1" min="1" max="7" required>
             </label>
             <label>这个语音听起来流畅：
-                <input type="number" min="1" max="7" id="smooth_${version}">
+                <input type="number" name="audio${idx+1}_score2" min="1" max="7" required>
             </label>
             <label>这个语音听起来接近真人：
-                <input type="number" min="1" max="7" id="humanlike_${version}">
+                <input type="number" name="audio${idx+1}_score3" min="1" max="7" required>
             </label>
         </div>
 
         <h3>停顿词察觉度</h3>
         <label>你是否察觉到停顿词？
-            <select id="pause_detect_${version}">
+            <select name="pause_detected_${version}" required>
                 <option value="">请选择</option>
                 <option value="是">是</option>
                 <option value="否">否</option>
             </select>
         </label>
         <label>如果有，请描述：
-            <textarea id="pause_desc_${version}"></textarea>
+            <textarea name="pause_comment_${version}"></textarea>
         </label>
         <hr>
     `;
 });
 
-// 保存数据
-function saveData() {
+// 提交表单
+document.getElementById("surveyForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
     const data = {
+        timestamp: new Date().toISOString(),
         order: orderLabel,
-
-        natural_no: document.getElementById("natural_no_pause").value,
-        smooth_no: document.getElementById("smooth_no_pause").value,
-        humanlike_no: document.getElementById("humanlike_no_pause").value,
-        detect_no: document.getElementById("pause_detect_no_pause").value,
-        desc_no: document.getElementById("pause_desc_no_pause").value.replace(/,/g, '，'),
-
-        natural_p: document.getElementById("natural_pause").value,
-        smooth_p: document.getElementById("smooth_pause").value,
-        humanlike_p: document.getElementById("humanlike_pause").value,
-        detect_p: document.getElementById("pause_detect_pause").value,
-        desc_p: document.getElementById("pause_desc_pause").value.replace(/,/g, '，'),
-
-        age: document.getElementById("age").value,
-        gender: document.getElementById("gender").value,
-        ai_exp: document.getElementById("ai_exp").value
+        audio1_type: versions[0],
+        audio1_score1: formData.get("audio1_score1"),
+        audio1_score2: formData.get("audio1_score2"),
+        audio1_score3: formData.get("audio1_score3"),
+        audio2_type: versions[1],
+        audio2_score1: formData.get("audio2_score1"),
+        audio2_score2: formData.get("audio2_score2"),
+        audio2_score3: formData.get("audio2_score3"),
+        pause_detected: formData.get(`pause_detected_${versions[0]}`) + "|" + formData.get(`pause_detected_${versions[1]}`),
+        pause_comment: (formData.get(`pause_comment_${versions[0]}`) || "") + "|" + (formData.get(`pause_comment_${versions[1]}`) || ""),
+        age: formData.get("age"),
+        gender: formData.get("gender"),
+        ai_experience: formData.get("ai_experience")
     };
 
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "顺序,自然_无停顿,流畅_无停顿,真人感_无停顿,察觉停顿_无停顿,描述_无停顿,自然_有停顿,流畅_有停顿,真人感_有停顿,察觉停顿_有停顿,描述_有停顿,年龄,性别,AI经验\n";
-    csvContent += `${data.order},${data.natural_no},${data.smooth_no},${data.humanlike_no},${data.detect_no},${data.desc_no},${data.natural_p},${data.smooth_p},${data.humanlike_p},${data.detect_p},${data.desc_p},${data.age},${data.gender},${data.ai_exp}\n`;
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "pilot_results.csv");
-    document.body.appendChild(link);
-    link.click();
-}
+    fetch(scriptURL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    }).then(() => {
+        alert("提交成功！感谢您的参与。");
+        window.location.reload();
+    }).catch(() => {
+        alert("提交失败，请重试。");
+    });
+});
 </script>
 
 </body>
