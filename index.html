@@ -104,14 +104,14 @@ versions.forEach((version, idx) => {
 
         <h3>停顿词察觉度</h3>
         <label>你是否察觉到停顿词？
-            <select name="pause_detected_${version}" required>
+            <select name="pause_detected${idx+1}" required>
                 <option value="">请选择</option>
                 <option value="是">是</option>
                 <option value="否">否</option>
             </select>
         </label>
         <label>如果有，请描述：
-            <textarea name="pause_comment_${version}"></textarea>
+            <textarea name="pause_comment${idx+1}"></textarea>
         </label>
         <hr>
     `;
@@ -133,8 +133,10 @@ document.getElementById("surveyForm").addEventListener("submit", function(e) {
         audio2_score1: formData.get("audio2_score1"),
         audio2_score2: formData.get("audio2_score2"),
         audio2_score3: formData.get("audio2_score3"),
-        pause_detected: formData.get(`pause_detected_${versions[0]}`) + "|" + formData.get(`pause_detected_${versions[1]}`),
-        pause_comment: (formData.get(`pause_comment_${versions[0]}`) || "") + "|" + (formData.get(`pause_comment_${versions[1]}`) || ""),
+        pause_detected1: formData.get("pause_detected1"),
+        pause_comment1: formData.get("pause_comment1") || "",
+        pause_detected2: formData.get("pause_detected2"),
+        pause_comment2: formData.get("pause_comment2") || "",
         age: formData.get("age"),
         gender: formData.get("gender"),
         ai_experience: formData.get("ai_experience")
@@ -156,3 +158,4 @@ document.getElementById("surveyForm").addEventListener("submit", function(e) {
 
 </body>
 </html>
+
